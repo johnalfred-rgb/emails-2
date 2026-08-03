@@ -46,6 +46,11 @@
     .logo { font-size: 19px; font-weight: 700; letter-spacing: -.02em; }
     .logo b { color: var(--accent); }
     .tag { font-size: 13px; color: var(--muted); }
+    .spacer { flex: 1; }
+    .userbox { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+    .userbox strong { color: var(--text); font-weight: 600; }
+    .userbox a { color: var(--accent); text-decoration: none; font-weight: 550; }
+    .userbox a:hover { text-decoration: underline; }
     main { max-width: 1080px; margin: 0 auto; padding: 24px 20px 80px; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
     @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
@@ -71,11 +76,14 @@
       appearance: none; border: 0; cursor: pointer; font: inherit; font-weight: 600;
       background: var(--accent); color: #fff; padding: 11px 18px; border-radius: 9px;
       transition: background .15s, opacity .15s; display: inline-flex; align-items: center; gap: 8px;
+      text-decoration: none;
     }
     .btn:hover { background: var(--accent-hover); }
     .btn:disabled { opacity: .5; cursor: not-allowed; }
     .btn.secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
     .btn.secondary:hover { background: var(--border); }
+    .btn.google { background: #fff; color: #3c4043; border: 1px solid #dadce0; font-weight: 600; }
+    .btn.google:hover { background: #f7f8f8; }
     .seg { display: inline-flex; padding: 3px; gap: 2px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; margin-bottom: 12px; }
     .seg button { appearance: none; border: 0; cursor: pointer; font: inherit; font-size: 13px; font-weight: 550;
       color: var(--muted); padding: 6px 14px; border-radius: 6px; }
@@ -100,79 +108,97 @@
     .progress > div { height: 100%; width: 0; background: var(--accent); transition: width .3s; }
     .muted { color: var(--muted); }
     .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-    .spinner { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @media (prefers-reduced-motion: reduce) { .spinner, .progress > div { animation: none; transition: none; } }
+    .login-wrap { max-width: 440px; margin: 8vh auto 0; text-align: center; }
+    .login-wrap .card { padding: 32px 28px; }
+    .login-wrap h1 { font-size: 20px; margin: 0 0 8px; letter-spacing: -.02em; }
+    .login-wrap p { color: var(--muted); font-size: 14px; margin: 0 0 22px; }
+    .gicon { width: 18px; height: 18px; display: inline-block; vertical-align: middle; }
+    @media (prefers-reduced-motion: reduce) { .progress > div { transition: none; } }
   </style>
 </head>
 <body>
   <header>
     <span class="logo">Co<b>Quest</b></span>
     <span class="tag">Bulk Email Sender</span>
+    <span class="spacer"></span>
+    <span id="userBox" class="userbox"></span>
   </header>
 
   <main>
-    <div id="setup" class="banner warn" style="display:none"></div>
-
-    <div id="authRow" class="card" style="display:none">
-      <h2>App password</h2>
-      <input type="password" id="appPassword" placeholder="Enter the app password set in Railway" autocomplete="off">
-      <p class="hint">This gates sending so only you can use this deployed app.</p>
-    </div>
-
-    <div class="grid">
-      <!-- LEFT: compose -->
-      <div>
+    <!-- LOGIN GATE -->
+    <div id="loginView" style="display:none">
+      <div class="login-wrap">
         <div class="card">
-          <h2><span class="step">1</span>Compose</h2>
-          <div class="row">
-            <label for="subject">Subject</label>
-            <input type="text" id="subject" placeholder="e.g. What we shipped this month">
-          </div>
-          <div class="row">
-            <label>Email body</label>
-            <div class="seg" role="group" aria-label="Body source">
-              <button id="modeTemplate" aria-pressed="true">Use template</button>
-              <button id="modeCustom" aria-pressed="false">Custom HTML</button>
-            </div>
-            <textarea id="body" rows="12" placeholder="Loading template..."></textarea>
-            <p class="hint">Personalize with <code>{{name}}</code>, <code>{{email}}</code>, or any column from your CSV.</p>
-          </div>
-          <div class="preview-wrap">
-            <label>Live preview <span class="muted" style="font-weight:400">(first recipient, or sample data)</span></label>
-            <iframe id="preview" title="Email preview"></iframe>
-          </div>
+          <h1>Sign in to continue</h1>
+          <p>Use your <strong id="domainLabel">company</strong> Google account. Emails send from your own Gmail.</p>
+          <div id="loginError" class="banner bad" style="display:none; text-align:left"></div>
+          <div id="loginNotConfigured" class="banner warn" style="display:none; text-align:left"></div>
+          <a id="signInBtn" class="btn google" href="/auth/google">
+            <svg class="gicon" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            Sign in with Google
+          </a>
         </div>
       </div>
+    </div>
 
-      <!-- RIGHT: recipients + send -->
-      <div>
-        <div class="card">
-          <h2><span class="step">2</span>Recipients</h2>
-          <div id="drop" class="drop">
-            <strong>Click to upload a CSV</strong><br>
-            <span class="hint">Needs an <code>email</code> column. Optional <code>name</code> (or any column) for personalization.</span>
+    <!-- APP -->
+    <div id="appView" style="display:none">
+      <div id="setup" class="banner ok" style="display:none"></div>
+
+      <div class="grid">
+        <!-- LEFT: compose -->
+        <div>
+          <div class="card">
+            <h2><span class="step">1</span>Compose</h2>
+            <div class="row">
+              <label for="subject">Subject</label>
+              <input type="text" id="subject" placeholder="e.g. What we shipped this month">
+            </div>
+            <div class="row">
+              <label>Email body</label>
+              <div class="seg" role="group" aria-label="Body source">
+                <button id="modeTemplate" aria-pressed="true">Use template</button>
+                <button id="modeCustom" aria-pressed="false">Custom HTML</button>
+              </div>
+              <textarea id="body" rows="12" placeholder="Write your email HTML here..."></textarea>
+              <p class="hint">Personalize with <code>{{name}}</code>, <code>{{email}}</code>, or any column from your CSV.</p>
+            </div>
+            <div class="preview-wrap">
+              <label>Live preview <span class="muted" style="font-weight:400">(first recipient, or sample data)</span></label>
+              <iframe id="preview" title="Email preview" sandbox=""></iframe>
+            </div>
           </div>
-          <input type="file" id="csv" accept=".csv,text/csv" style="display:none">
-          <div id="recipientInfo"></div>
         </div>
 
-        <div class="card">
-          <h2><span class="step">3</span>Send</h2>
-          <div class="row" style="max-width:220px">
-            <label for="delay">Delay between emails (ms)</label>
-            <input type="number" id="delay" value="400" min="0" max="10000" step="50">
-            <p class="hint">Slower = gentler on Gmail's limits.</p>
+        <!-- RIGHT: recipients + send -->
+        <div>
+          <div class="card">
+            <h2><span class="step">2</span>Recipients</h2>
+            <div id="drop" class="drop">
+              <strong>Click to upload a CSV</strong><br>
+              <span class="hint">Needs an <code>email</code> column. Optional <code>name</code> (or any column) for personalization.</span>
+            </div>
+            <input type="file" id="csv" accept=".csv,text/csv" style="display:none">
+            <div id="recipientInfo"></div>
           </div>
-          <div class="actions">
-            <button class="btn secondary" id="testBtn">Send test to myself</button>
-            <button class="btn" id="sendBtn" disabled>Send to all</button>
-          </div>
-          <div id="sendMsg" class="hint" style="margin-top:12px"></div>
-          <div id="progressWrap" style="display:none; margin-top:16px">
-            <div class="progress"><div id="progressBar"></div></div>
-            <div id="progressText" class="hint" style="margin-top:8px"></div>
-            <div id="failuresWrap"></div>
+
+          <div class="card">
+            <h2><span class="step">3</span>Send</h2>
+            <div class="row" style="max-width:220px">
+              <label for="delay">Delay between emails (ms)</label>
+              <input type="number" id="delay" value="400" min="0" max="10000" step="50">
+              <p class="hint">Slower = gentler on Gmail's limits.</p>
+            </div>
+            <div class="actions">
+              <button class="btn secondary" id="testBtn">Send test to myself</button>
+              <button class="btn" id="sendBtn" disabled>Send to all</button>
+            </div>
+            <div id="sendMsg" class="hint" style="margin-top:12px"></div>
+            <div id="progressWrap" style="display:none; margin-top:16px">
+              <div class="progress"><div id="progressBar"></div></div>
+              <div id="progressText" class="hint" style="margin-top:8px"></div>
+              <div id="failuresWrap"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -180,93 +206,158 @@
   </main>
 
   <script>
-    var TEMPLATE_CACHE = null;
     var recipients = [];
     var columns = [];
-    var config = { passwordRequired: false, gmailConfigured: false };
 
     var el = function (id) { return document.getElementById(id); };
 
-    function getPassword() { return el('appPassword') ? el('appPassword').value : ''; }
-
-    // ---- Load config + template ----
-    fetch('/api/config').then(function (r) { return r.json(); }).then(function (c) {
-      config = c;
-      if (c.passwordRequired) el('authRow').style.display = '';
-      var b = el('setup');
-      if (c.gmailConfigured) {
-        b.className = 'banner ok';
-        b.textContent = 'Ready to send as ' + (c.fromName || '') + ' <' + (c.fromEmail || '') + '>.';
-        b.style.display = '';
-      } else {
-        b.className = 'banner bad';
-        b.innerHTML = 'Not configured yet. Set <code>GMAIL_USER</code> and <code>GMAIL_APP_PASSWORD</code> in Railway → Variables, then redeploy.';
-        b.style.display = '';
+    // ---- Boot: figure out sign-in state ----
+    (function showLoginErrorFromUrl() {
+      var m = /[?&]error=([^&]+)/.exec(location.search);
+      if (m) {
+        el('loginError').style.display = '';
+        el('loginError').textContent = decodeURIComponent(m[1].replace(/\+/g, ' '));
+        history.replaceState(null, '', location.pathname); // clean the URL
       }
-      if (c.defaultDelayMs) el('delay').value = c.defaultDelayMs;
-    }).catch(function () {});
+    })();
 
-    function loadTemplate() {
-      if (TEMPLATE_CACHE != null) { setBody(TEMPLATE_CACHE); return; }
-      fetch('/email_blast.html').then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
-        TEMPLATE_CACHE = t || '<p>Hi {{name}},</p>\n<p>Your message here.</p>';
-        setBody(TEMPLATE_CACHE);
-      }).catch(function () { setBody('<p>Hi {{name}},</p>\n<p>Your message here.</p>'); });
-    }
-
-    function setBody(v) { el('body').value = v; renderPreview(); }
-
-    // ---- Body mode toggle ----
-    el('modeTemplate').addEventListener('click', function () {
-      el('modeTemplate').setAttribute('aria-pressed', 'true');
-      el('modeCustom').setAttribute('aria-pressed', 'false');
-      loadTemplate();
-    });
-    el('modeCustom').addEventListener('click', function () {
-      el('modeCustom').setAttribute('aria-pressed', 'true');
-      el('modeTemplate').setAttribute('aria-pressed', 'false');
-      setBody('');
-      el('body').focus();
-    });
-
-    el('body').addEventListener('input', renderPreview);
-    el('subject').addEventListener('input', renderPreview);
-
-    function sampleRow() {
-      if (recipients.length) return recipients[0];
-      return { name: 'there', email: 'sample@example.com' };
-    }
-    function fillTemplate(str, row) {
-      if (!str) return '';
-      return str.replace(/\{\{\s*([\w.-]+)\s*\}\}/g, function (m, key) {
-        var lower = key.toLowerCase();
-        for (var k in row) { if (row.hasOwnProperty(k) && k.toLowerCase() === lower && row[k] != null) return String(row[k]); }
-        return '';
+    fetch('/api/me', { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (me) {
+        el('domainLabel').textContent = '@' + (me.domain || 'company');
+        if (me.authenticated) {
+          el('appView').style.display = '';
+          el('loginView').style.display = 'none';
+          el('userBox').innerHTML = '<strong>' + esc(me.email) + '</strong> · <a href="/auth/logout">Sign out</a>';
+          var b = el('setup');
+          b.className = 'banner ok';
+          b.textContent = 'Signed in as ' + (me.name || me.email) + '. Emails will send from your Gmail (' + me.email + ').';
+          b.style.display = '';
+          if (me.defaultDelayMs) el('delay').value = me.defaultDelayMs;
+          initApp();
+        } else {
+          el('loginView').style.display = '';
+          el('appView').style.display = 'none';
+          if (!me.oauthConfigured) {
+            el('signInBtn').style.display = 'none';
+            el('loginNotConfigured').style.display = '';
+            el('loginNotConfigured').innerHTML = 'Google sign-in isn’t configured yet. Set <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code> in Railway → Variables, then redeploy.';
+          }
+        }
+      })
+      .catch(function () {
+        el('loginView').style.display = '';
       });
-    }
-    function renderPreview() {
-      var html = fillTemplate(el('body').value, sampleRow());
-      el('preview').srcdoc = html;
+
+    function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
+
+    // ---- App wiring (only runs once signed in) ----
+    function initApp() {
+      // Clean starter template — no external file, no old CoQuest landing/newsletter markup.
+      var STARTER_TEMPLATE = '<p>Hi {{name}},</p>\n<p>Write your message here.</p>\n<p>Best,<br>CoQuest</p>';
+      function loadTemplate() { setBody(STARTER_TEMPLATE); }
+      function setBody(v) { el('body').value = v; renderPreview(); }
+
+      el('modeTemplate').addEventListener('click', function () {
+        el('modeTemplate').setAttribute('aria-pressed', 'true');
+        el('modeCustom').setAttribute('aria-pressed', 'false');
+        loadTemplate();
+      });
+      el('modeCustom').addEventListener('click', function () {
+        el('modeCustom').setAttribute('aria-pressed', 'true');
+        el('modeTemplate').setAttribute('aria-pressed', 'false');
+        setBody('');
+        el('body').focus();
+      });
+
+      el('body').addEventListener('input', renderPreview);
+      el('subject').addEventListener('input', renderPreview);
+
+      function sampleRow() {
+        if (recipients.length) return recipients[0];
+        return { name: 'there', email: 'sample@example.com' };
+      }
+      function fillTemplate(str, row) {
+        if (!str) return '';
+        return str.replace(/\{\{\s*([\w.-]+)\s*\}\}/g, function (m, key) {
+          var lower = key.toLowerCase();
+          for (var k in row) { if (row.hasOwnProperty(k) && k.toLowerCase() === lower && row[k] != null) return String(row[k]); }
+          return '';
+        });
+      }
+      function renderPreview() {
+        el('preview').srcdoc = fillTemplate(el('body').value, sampleRow());
+      }
+      window.__renderPreview = renderPreview;
+
+      // ---- CSV handling ----
+      el('drop').addEventListener('click', function () { el('csv').click(); });
+      el('csv').addEventListener('change', function (e) { if (e.target.files[0]) readCsv(e.target.files[0]); });
+      ['dragover', 'dragenter'].forEach(function (ev) {
+        el('drop').addEventListener(ev, function (e) { e.preventDefault(); el('drop').classList.add('over'); });
+      });
+      ['dragleave', 'drop'].forEach(function (ev) {
+        el('drop').addEventListener(ev, function (e) { e.preventDefault(); el('drop').classList.remove('over'); });
+      });
+      el('drop').addEventListener('drop', function (e) {
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) readCsv(e.dataTransfer.files[0]);
+      });
+
+      function readCsv(file) {
+        var reader = new FileReader();
+        reader.onload = function () { parseCsv(String(reader.result)); };
+        reader.readAsText(file);
+      }
+
+      // ---- Sending ----
+      el('testBtn').addEventListener('click', function () {
+        var subject = el('subject').value.trim();
+        var body = el('body').value;
+        if (!subject || !body) { setSendMsg('Add a subject and body first.', 'warn'); return; }
+        el('testBtn').disabled = true;
+        setSendMsg('Sending test…');
+        fetch('/api/test', {
+          method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subject: subject, html: body }),
+        }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+          .then(function (res) {
+            if (res.ok) setSendMsg('✓ Test sent to ' + res.j.sentTo + '. Check your inbox.', 'ok');
+            else setSendMsg('✗ ' + (res.j.error || 'Test failed.'), 'bad');
+          }).catch(function () { setSendMsg('✗ Network error sending test.', 'bad'); })
+          .finally(function () { el('testBtn').disabled = false; });
+      });
+
+      el('sendBtn').addEventListener('click', function () {
+        var subject = el('subject').value.trim();
+        var body = el('body').value;
+        if (!subject || !body) { setSendMsg('Add a subject and body first.', 'warn'); return; }
+        if (!recipients.length) { setSendMsg('Upload a CSV of recipients first.', 'warn'); return; }
+        if (!confirm('Send this email to ' + recipients.length + ' recipient(s)?')) return;
+
+        el('sendBtn').disabled = true;
+        el('testBtn').disabled = true;
+        setSendMsg('');
+        el('progressWrap').style.display = '';
+        el('failuresWrap').innerHTML = '';
+        el('progressBar').style.width = '0%';
+        el('progressText').textContent = 'Starting…';
+
+        fetch('/api/send', {
+          method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subject: subject, html: body, recipients: recipients, delayMs: Number(el('delay').value) }),
+        }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+          .then(function (res) {
+            if (!res.ok) { setSendMsg('✗ ' + (res.j.error || 'Could not start send.'), 'bad'); resetButtons(); el('progressWrap').style.display = 'none'; return; }
+            pollJob(res.j.jobId);
+          }).catch(function () { setSendMsg('✗ Network error.', 'bad'); resetButtons(); });
+      });
+
+      loadTemplate();
     }
 
-    // ---- CSV handling ----
-    el('drop').addEventListener('click', function () { el('csv').click(); });
-    el('csv').addEventListener('change', function (e) { if (e.target.files[0]) readCsv(e.target.files[0]); });
-    ['dragover', 'dragenter'].forEach(function (ev) {
-      el('drop').addEventListener(ev, function (e) { e.preventDefault(); el('drop').classList.add('over'); });
-    });
-    ['dragleave', 'drop'].forEach(function (ev) {
-      el('drop').addEventListener(ev, function (e) { e.preventDefault(); el('drop').classList.remove('over'); });
-    });
-    el('drop').addEventListener('drop', function (e) {
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) readCsv(e.dataTransfer.files[0]);
-    });
-
-    function readCsv(file) {
-      var reader = new FileReader();
-      reader.onload = function () { parseCsv(String(reader.result)); };
-      reader.readAsText(file);
-    }
+    // ---- Shared helpers (used by initApp + parseCsv) ----
+    function setSendMsg(msg, cls) { el('sendMsg').innerHTML = msg; el('sendMsg').className = 'hint'; if (cls) el('sendMsg').className = 'banner ' + cls; }
+    function resetButtons() { el('sendBtn').disabled = recipients.length === 0; el('testBtn').disabled = false; }
 
     // Minimal CSV parser supporting quoted fields.
     function parseCsvRows(text) {
@@ -304,7 +395,6 @@
         if (emailIdx < 0) emailIdx = 0;
         dataRows = rows.slice(1);
       } else {
-        // No header: assume first column is email; find one that looks like an email.
         var probe = rows[0];
         emailIdx = probe.findIndex(function (v) { return EMAIL_RE.test(v.trim()); });
         if (emailIdx < 0) emailIdx = 0;
@@ -321,16 +411,13 @@
         if (EMAIL_RE.test(email)) valid.push(obj); else if (email) invalid.push(email);
       });
 
-      // De-dupe by email.
       var seen = {}, deduped = [];
       valid.forEach(function (o) { var k = o.email.toLowerCase(); if (!seen[k]) { seen[k] = 1; deduped.push(o); } });
 
       recipients = deduped;
       showRecipients(deduped, invalid);
-      renderPreview();
+      if (window.__renderPreview) window.__renderPreview();
     }
-
-    function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
 
     function showRecipients(valid, invalid) {
       var info = el('recipientInfo');
@@ -359,59 +446,9 @@
       el('sendBtn').disabled = valid.length === 0;
     }
 
-    // ---- Sending ----
-    function setSendMsg(msg, cls) { el('sendMsg').innerHTML = msg; el('sendMsg').className = 'hint'; if (cls) el('sendMsg').className = 'banner ' + cls; }
-
-    el('testBtn').addEventListener('click', function () {
-      var subject = el('subject').value.trim();
-      var body = el('body').value;
-      if (!subject || !body) { setSendMsg('Add a subject and body first.', 'warn'); return; }
-      el('testBtn').disabled = true;
-      setSendMsg('Sending test…');
-      fetch('/api/test', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: getPassword(), subject: subject, html: body }),
-      }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
-        .then(function (res) {
-          if (res.ok) setSendMsg('✓ Test sent to ' + res.j.sentTo + '. Check your inbox.', 'ok');
-          else setSendMsg('✗ ' + (res.j.error || 'Test failed.'), 'bad');
-        }).catch(function () { setSendMsg('✗ Network error sending test.', 'bad'); })
-        .finally(function () { el('testBtn').disabled = false; });
-    });
-
-    el('sendBtn').addEventListener('click', function () {
-      var subject = el('subject').value.trim();
-      var body = el('body').value;
-      if (!subject || !body) { setSendMsg('Add a subject and body first.', 'warn'); return; }
-      if (!recipients.length) { setSendMsg('Upload a CSV of recipients first.', 'warn'); return; }
-      if (!confirm('Send this email to ' + recipients.length + ' recipient(s)?')) return;
-
-      el('sendBtn').disabled = true;
-      el('testBtn').disabled = true;
-      setSendMsg('');
-      el('progressWrap').style.display = '';
-      el('failuresWrap').innerHTML = '';
-      el('progressBar').style.width = '0%';
-      el('progressText').textContent = 'Starting…';
-
-      fetch('/api/send', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          password: getPassword(), subject: subject, html: body,
-          recipients: recipients, delayMs: Number(el('delay').value),
-        }),
-      }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
-        .then(function (res) {
-          if (!res.ok) { setSendMsg('✗ ' + (res.j.error || 'Could not start send.'), 'bad'); resetButtons(); el('progressWrap').style.display = 'none'; return; }
-          pollJob(res.j.jobId);
-        }).catch(function () { setSendMsg('✗ Network error.', 'bad'); resetButtons(); });
-    });
-
-    function resetButtons() { el('sendBtn').disabled = recipients.length === 0; el('testBtn').disabled = false; }
-
     function pollJob(jobId) {
       var tick = function () {
-        fetch('/api/job/' + jobId).then(function (r) { return r.json(); }).then(function (j) {
+        fetch('/api/job/' + jobId, { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (j) {
           if (j.error) { el('progressText').textContent = j.error; resetButtons(); return; }
           var processed = j.sent + j.failed;
           var pct = j.total ? Math.round((processed / j.total) * 100) : 0;
@@ -434,9 +471,6 @@
       };
       tick();
     }
-
-    // Initial load.
-    loadTemplate();
   </script>
 </body>
 </html>
