@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoQuest — Bulk Email Sender</title>
+  <style>
+    :root {
+      --bg: #f4f6fa;
+      --surface: #ffffff;
+      --surface-2: #f7f9fc;
+      --border: #e2e6ee;
+      --text: #182031;
+      --muted: #667085;
+      --accent: #1a56db;
+      --accent-hover: #1747b8;
+      --accent-soft: #eef3fd;
+      --good: #157347;
+      --good-soft: #e7f5ec;
+      --bad: #b42318;
+      --bad-soft: #fdeceb;
+      --warn: #a35200;
+      --warn-soft: #fdf3e7;
+      --radius: 12px;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0e1116; --surface: #171b22; --surface-2: #1c2129; --border: #2a313c;
+        --text: #e6e9ef; --muted: #97a0b0; --accent: #4d84f3; --accent-hover: #6a99f5;
+        --accent-soft: #172238; --good: #4ade80; --good-soft: #12251a;
+        --bad: #f87171; --bad-soft: #2a1615; --warn: #fbbf67; --warn-soft: #2a2113;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: var(--sans); line-height: 1.5; -webkit-font-smoothing: antialiased;
+    }
+    header {
+      padding: 18px 24px; border-bottom: 1px solid var(--border);
+      background: var(--surface); display: flex; align-items: center; gap: 12px;
+      position: sticky; top: 0; z-index: 5;
+    }
+    .logo { font-size: 19px; font-weight: 700; letter-spacing: -.02em; }
+    .logo b { color: var(--accent); }
+    .tag { font-size: 13px; color: var(--muted); }
+    main { max-width: 1080px; margin: 0 auto; padding: 24px 20px 80px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; margin-bottom: 20px;
+    }
+    h2 { font-size: 15px; margin: 0 0 14px; font-weight: 650; letter-spacing: -.01em; }
+    .step { display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%; background: var(--accent-soft);
+      color: var(--accent); font-size: 12px; font-weight: 700; margin-right: 8px; }
+    label { display: block; font-size: 13px; font-weight: 550; margin: 0 0 6px; }
+    input[type=text], input[type=password], input[type=number], textarea, select {
+      width: 100%; font: inherit; color: var(--text); background: var(--surface-2);
+      border: 1px solid var(--border); border-radius: 9px; padding: 10px 12px;
+    }
+    input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+    textarea { resize: vertical; font-family: var(--mono); font-size: 12.5px; line-height: 1.5; }
+    .row { margin-bottom: 14px; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    code { font-family: var(--mono); font-size: 12px; background: var(--accent-soft); color: var(--accent); padding: 1px 5px; border-radius: 4px; }
+    .btn {
+      appearance: none; border: 0; cursor: pointer; font: inherit; font-weight: 600;
+      background: var(--accent); color: #fff; padding: 11px 18px; border-radius: 9px;
+      transition: background .15s, opacity .15s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn.secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .btn.secondary:hover { background: var(--border); }
+    .seg { display: inline-flex; padding: 3px; gap: 2px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; margin-bottom: 12px; }
+    .seg button { appearance: none; border: 0; cursor: pointer; font: inherit; font-size: 13px; font-weight: 550;
+      color: var(--muted); padding: 6px 14px; border-radius: 6px; }
+    .seg button[aria-pressed=true] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+    .banner { border-radius: 9px; padding: 11px 14px; font-size: 13px; margin-bottom: 16px; display: flex; gap: 9px; align-items: flex-start; }
+    .banner.ok { background: var(--good-soft); color: var(--good); }
+    .banner.warn { background: var(--warn-soft); color: var(--warn); }
+    .banner.bad { background: var(--bad-soft); color: var(--bad); }
+    iframe { width: 100%; height: 420px; border: 1px solid var(--border); border-radius: 9px; background: #fff; }
+    .preview-wrap { margin-top: 12px; }
+    .counts { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+    .pill { font-size: 12.5px; font-weight: 600; padding: 4px 11px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); }
+    .pill.ok { background: var(--good-soft); color: var(--good); border-color: transparent; }
+    .pill.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 8px; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 600; }
+    .table-scroll { max-height: 220px; overflow: auto; border: 1px solid var(--border); border-radius: 9px; }
+    .drop { border: 1.5px dashed var(--border); border-radius: 10px; padding: 22px; text-align: center; color: var(--muted); background: var(--surface-2); cursor: pointer; }
+    .drop:hover, .drop.over { border-color: var(--accent); color: var(--accent); }
+    .progress { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; border: 1px solid var(--border); }
+    .progress > div { height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+    .muted { color: var(--muted); }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .spinner { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .spinner, .progress > div { animation: none; transition: none; } }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="logo">Co<b>Quest</b></span>
+    <span class="tag">Bulk Email Sender</span>
+  </header>
+
+  <main>
+    <div id="setup" class="banner warn" style="display:none"></div>
+
+    <div id="authRow" class="card" style="display:none">
+      <h2>App password</h2>
+      <input type="password" id="appPassword" placeholder="Enter the app password set in Railway" autocomplete="off">
+      <p class="hint">This gates sending so only you can use this deployed app.</p>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: compose -->
+      <div>
+        <div class="card">
+          <h2><span class="step">1</span>Compose</h2>
+          <div class="row">
+            <label for="subject">Subject</label>
+            <input type="text" id="subject" placeholder="e.g. What we shipped this month">
+          </div>
+          <div class="row">
+            <label>Email body</label>
+            <div class="seg" role="group" aria-label="Body source">
+              <button id="modeTemplate" aria-pressed="true">Use template</button>
+              <button id="modeCustom" aria-pressed="false">Custom HTML</button>
+            </div>
+            <textarea id="body" rows="12" placeholder="Loading template..."></textarea>
+            <p class="hint">Personalize with <code>{{name}}</code>, <code>{{email}}</code>, or any column from your CSV.</p>
+          </div>
+          <div class="preview-wrap">
+            <label>Live preview <span class="muted" style="font-weight:400">(first recipient, or sample data)</span></label>
+            <iframe id="preview" title="Email preview"></iframe>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: recipients + send -->
+      <div>
+        <div class="card">
+          <h2><span class="step">2</span>Recipients</h2>
+          <div id="drop" class="drop">
+            <strong>Click to upload a CSV</strong><br>
+            <span class="hint">Needs an <code>email</code> column. Optional <code>name</code> (or any column) for personalization.</span>
+          </div>
+          <input type="file" id="csv" accept=".csv,text/csv" style="display:none">
+          <div id="recipientInfo"></div>
+        </div>
+
+        <div class="card">
+          <h2><span class="step">3</span>Send</h2>
+          <div class="row" style="max-width:220px">
+            <label for="delay">Delay between emails (ms)</label>
+            <input type="number" id="delay" value="400" min="0" max="10000" step="50">
+            <p class="hint">Slower = gentler on Gmail's limits.</p>
+          </div>
+          <div class="actions">
+            <button class="btn secondary" id="testBtn">Send test to myself</button>
+            <button class="btn" id="sendBtn" disabled>Send to all</button>
+          </div>
+          <div id="sendMsg" class="hint" style="margin-top:12px"></div>
+          <div id="progressWrap" style="display:none; margin-top:16px">
+            <div class="progress"><div id="progressBar"></div></div>
+            <div id="progressText" class="hint" style="margin-top:8px"></div>
+            <div id="failuresWrap"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    var TEMPLATE_CACHE = null;
+    var recipients = [];
+    var columns = [];
+    var config = { passwordRequired: false, gmailConfigured: false };
+
+    var el = function (id) { return document.getElementById(id); };
+
+    function getPassword() { return el('appPassword') ? el('appPassword').value : ''; }
+
+    // ---- Load config + template ----
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (c) {
+      config = c;
+      if (c.passwordRequired) el('authRow').style.display = '';
+      var b = el('setup');
+      if (c.gmailConfigured) {
+        b.className = 'banner ok';
+        b.textContent = 'Ready to send as ' + (c.fromName || '') + ' <' + (c.fromEmail || '') + '>.';
+        b.style.display = '';
+      } else {
+        b.className = 'banner bad';
+        b.innerHTML = 'Not configured yet. Set <code>GMAIL_USER</code> and <code>GMAIL_APP_PASSWORD</code> in Railway → Variables, then redeploy.';
+        b.style.display = '';
+      }
+      if (c.defaultDelayMs) el('delay').value = c.defaultDelayMs;
+    }).catch(function () {});
+
+    function loadTemplate() {
+      if (TEMPLATE_CACHE != null) { setBody(TEMPLATE_CACHE); return; }
+      fetch('/email_blast.html').then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
+        TEMPLATE_CACHE = t || '<p>Hi {{name}},</p>\n<p>Your message here.</p>';
+        setBody(TEMPLATE_CACHE);
+      }).catch(function () { setBody('<p>Hi {{name}},</p>\n<p>Your message here.</p>'); });
+    }
+
+    function setBody(v) { el('body').value = v; renderPreview(); }
+
+    // ---- Body mode toggle ----
+    el('modeTemplate').addEventListener('click', function () {
+      el('modeTemplate').setAttribute('aria-pressed', 'true');
+      el('modeCustom').setAttribute('aria-pressed', 'false');
+      loadTemplate();
+    });
+    el('modeCustom').addEventListener('click', function () {
+      el('modeCustom').setAttribute('aria-pressed', 'true');
+      el('modeTemplate').setAttribute('aria-pressed', 'false');
+      setBody('');
+      el('body').focus();
+    });
+
+    el('body').addEventListener('input', renderPreview);
+    el('subject').addEventListener('input', renderPreview);
+
+    function sampleRow() {
+      if (recipients.length) return recipients[0];
+      return { name: 'there', email: 'sample@example.com' };
+    }
+    function fillTemplate(str, row) {
+      if (!str) return '';
+      return str.replace(/\{\{\s*([\w.-]+)\s*\}\}/g, function (m, key) {
+        var lower = key.toLowerCase();
+        for (var k in row) { if (row.hasOwnProperty(k) && k.toLowerCase() === lower && row[k] != null) return String(row[k]); }
+        return '';
+      });
+    }
+    function renderPreview() {
+      var html = fillTemplate(el('body').value, sampleRow());
+      el('preview').srcdoc = html;
+    }
+
+    // ---- CSV handling ----
+    el('drop').addEventListener('click', function () { el('csv').click(); });
+    el('csv').addEventListener('change', function (e) { if (e.target.files[0]) readCsv(e.target.files[0]); });
+    ['dragover', 'dragenter'].forEach(function (ev) {
+      el('drop').addEventListener(ev, function (e) { e.preventDefault(); el('drop').classList.add('over'); });
+    });
+    ['dragleave', 'drop'].forEach(function (ev) {
+      el('drop').addEventListener(ev, function (e) { e.preventDefault(); el('drop').classList.remove('over'); });
+    });
+    el('drop').addEventListener('drop', function (e) {
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) readCsv(e.dataTransfer.files[0]);
+    });
+
+    function readCsv(file) {
+      var reader = new FileReader();
+      reader.onload = function () { parseCsv(String(reader.result)); };
+      reader.readAsText(file);
+    }
+
+    // Minimal CSV parser supporting quoted fields.
+    function parseCsvRows(text) {
+      var rows = [], row = [], field = '', inQuotes = false;
+      for (var i = 0; i < text.length; i++) {
+        var c = text[i];
+        if (inQuotes) {
+          if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else { inQuotes = false; } }
+          else { field += c; }
+        } else {
+          if (c === '"') inQuotes = true;
+          else if (c === ',') { row.push(field); field = ''; }
+          else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+          else if (c === '\r') { /* skip */ }
+          else field += c;
+        }
+      }
+      if (field.length || row.length) { row.push(field); rows.push(row); }
+      return rows.filter(function (r) { return r.some(function (x) { return x.trim() !== ''; }); });
+    }
+
+    var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    function parseCsv(text) {
+      var rows = parseCsvRows(text);
+      if (!rows.length) { showRecipients([], []); return; }
+
+      var header = rows[0].map(function (h) { return h.trim(); });
+      var hasHeader = header.some(function (h) { return /email|e-mail|mail/i.test(h); });
+      var emailIdx = 0, dataRows;
+
+      if (hasHeader) {
+        columns = header.slice();
+        emailIdx = header.findIndex(function (h) { return /email|e-mail|mail/i.test(h); });
+        if (emailIdx < 0) emailIdx = 0;
+        dataRows = rows.slice(1);
+      } else {
+        // No header: assume first column is email; find one that looks like an email.
+        var probe = rows[0];
+        emailIdx = probe.findIndex(function (v) { return EMAIL_RE.test(v.trim()); });
+        if (emailIdx < 0) emailIdx = 0;
+        columns = probe.map(function (_, i) { return i === emailIdx ? 'email' : 'col' + (i + 1); });
+        dataRows = rows;
+      }
+
+      var valid = [], invalid = [];
+      dataRows.forEach(function (r) {
+        var obj = {};
+        columns.forEach(function (col, i) { obj[col] = (r[i] != null ? r[i].trim() : ''); });
+        var email = (r[emailIdx] != null ? r[emailIdx].trim() : '');
+        obj.email = email;
+        if (EMAIL_RE.test(email)) valid.push(obj); else if (email) invalid.push(email);
+      });
+
+      // De-dupe by email.
+      var seen = {}, deduped = [];
+      valid.forEach(function (o) { var k = o.email.toLowerCase(); if (!seen[k]) { seen[k] = 1; deduped.push(o); } });
+
+      recipients = deduped;
+      showRecipients(deduped, invalid);
+      renderPreview();
+    }
+
+    function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
+
+    function showRecipients(valid, invalid) {
+      var info = el('recipientInfo');
+      if (!valid.length && !invalid.length) { info.innerHTML = '<p class="hint">No rows found in that file.</p>'; el('sendBtn').disabled = true; return; }
+      var html = '<div class="counts">';
+      html += '<span class="pill ok">' + valid.length + ' valid</span>';
+      if (invalid.length) html += '<span class="pill bad">' + invalid.length + ' invalid (skipped)</span>';
+      var cols = columns.filter(function (c) { return c !== 'email'; });
+      if (cols.length) html += '<span class="pill">columns: ' + cols.map(esc).join(', ') + '</span>';
+      html += '</div>';
+
+      var preview = valid.slice(0, 8);
+      if (preview.length) {
+        html += '<div class="table-scroll"><table><thead><tr><th>email</th>';
+        cols.forEach(function (c) { html += '<th>' + esc(c) + '</th>'; });
+        html += '</tr></thead><tbody>';
+        preview.forEach(function (r) {
+          html += '<tr><td>' + esc(r.email) + '</td>';
+          cols.forEach(function (c) { html += '<td>' + esc(r[c] || '') + '</td>'; });
+          html += '</tr>';
+        });
+        html += '</tbody></table></div>';
+        if (valid.length > preview.length) html += '<p class="hint">Showing first ' + preview.length + ' of ' + valid.length + '.</p>';
+      }
+      info.innerHTML = html;
+      el('sendBtn').disabled = valid.length === 0;
+    }
+
+    // ---- Sending ----
+    function setSendMsg(msg, cls) { el('sendMsg').innerHTML = msg; el('sendMsg').className = 'hint'; if (cls) el('sendMsg').className = 'banner ' + cls; }
+
+    el('testBtn').addEventListener('click', function () {
+      var subject = el('subject').value.trim();
+      var body = el('body').value;
+      if (!subject || !body) { setSendMsg('Add a subject and body first.', 'warn'); return; }
+      el('testBtn').disabled = true;
+      setSendMsg('Sending test…');
+      fetch('/api/test', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: getPassword(), subject: subject, html: body }),
+      }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) {
+          if (res.ok) setSendMsg('✓ Test sent to ' + res.j.sentTo + '. Check your inbox.', 'ok');
+          else setSendMsg('✗ ' + (res.j.error || 'Test failed.'), 'bad');
+        }).catch(function () { setSendMsg('✗ Network error sending test.', 'bad'); })
+        .finally(function () { el('testBtn').disabled = false; });
+    });
+
+    el('sendBtn').addEventListener('click', function () {
+      var subject = el('subject').value.trim();
+      var body = el('body').value;
+      if (!subject || !body) { setSendMsg('Add a subject and body first.', 'warn'); return; }
+      if (!recipients.length) { setSendMsg('Upload a CSV of recipients first.', 'warn'); return; }
+      if (!confirm('Send this email to ' + recipients.length + ' recipient(s)?')) return;
+
+      el('sendBtn').disabled = true;
+      el('testBtn').disabled = true;
+      setSendMsg('');
+      el('progressWrap').style.display = '';
+      el('failuresWrap').innerHTML = '';
+      el('progressBar').style.width = '0%';
+      el('progressText').textContent = 'Starting…';
+
+      fetch('/api/send', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password: getPassword(), subject: subject, html: body,
+          recipients: recipients, delayMs: Number(el('delay').value),
+        }),
+      }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) {
+          if (!res.ok) { setSendMsg('✗ ' + (res.j.error || 'Could not start send.'), 'bad'); resetButtons(); el('progressWrap').style.display = 'none'; return; }
+          pollJob(res.j.jobId);
+        }).catch(function () { setSendMsg('✗ Network error.', 'bad'); resetButtons(); });
+    });
+
+    function resetButtons() { el('sendBtn').disabled = recipients.length === 0; el('testBtn').disabled = false; }
+
+    function pollJob(jobId) {
+      var tick = function () {
+        fetch('/api/job/' + jobId).then(function (r) { return r.json(); }).then(function (j) {
+          if (j.error) { el('progressText').textContent = j.error; resetButtons(); return; }
+          var processed = j.sent + j.failed;
+          var pct = j.total ? Math.round((processed / j.total) * 100) : 0;
+          el('progressBar').style.width = pct + '%';
+          el('progressText').innerHTML = processed + ' / ' + j.total + ' processed · <span style="color:var(--good)">' +
+            j.sent + ' sent</span>' + (j.failed ? ' · <span style="color:var(--bad)">' + j.failed + ' failed</span>' : '');
+          if (j.done) {
+            el('progressText').innerHTML += ' — <strong>done</strong>';
+            if (j.failures && j.failures.length) {
+              var h = '<div class="banner bad" style="margin-top:12px">' + j.failures.length + ' failed:</div><div class="table-scroll"><table><thead><tr><th>email</th><th>error</th></tr></thead><tbody>';
+              j.failures.forEach(function (f) { h += '<tr><td>' + esc(f.email) + '</td><td>' + esc(f.error) + '</td></tr>'; });
+              h += '</tbody></table></div>';
+              el('failuresWrap').innerHTML = h;
+            }
+            resetButtons();
+          } else {
+            setTimeout(tick, 1000);
+          }
+        }).catch(function () { setTimeout(tick, 2000); });
+      };
+      tick();
+    }
+
+    // Initial load.
+    loadTemplate();
+  </script>
+</body>
+</html>
